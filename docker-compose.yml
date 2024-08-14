@@ -39,6 +39,10 @@ services:
       - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
       - REQRES_API_URL=https://reqres.in
       - UPLOAD_DIR=/app/uploads
+      - EMAIL_HOST=smtp.example.com
+      - EMAIL_PORT=587
+      - EMAIL_USER=your-email@example.com
+      - EMAIL_PASS=your-email-password
     command: start:dev
 
 volumes:

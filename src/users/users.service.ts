@@ -20,11 +20,13 @@ import { AvatarsService } from '~/avatars/avatars.service';
 import { AvatarDto } from '~/avatars/dtos/avatar.dto';
 import { DeleteAvatarDto } from '~/avatars/dtos/delete-avatar.dto';
 import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
+import * as nodemailer from 'nodemailer';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
-  private client: ClientProxy;
+  private rabbitMqClient: ClientProxy;
+  private mailTransporter: nodemailer.Transporter;
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
@@ -32,7 +34,7 @@ export class UsersService {
     private readonly configService: ConfigService,
     private readonly avatarService: AvatarsService,
   ) {
-    this.client = ClientProxyFactory.create({
+    this.rabbitMqClient = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
         urls: [this.configService.get<string>('RABBITMQ_URI')],
@@ -40,6 +42,16 @@ export class UsersService {
         queueOptions: {
           durable: false,
         },
+      },
+    });
+
+    this.mailTransporter = nodemailer.createTransport({
+      host: this.configService.get<string>('EMAIL_HOST'),
+      port: this.configService.get<number>('EMAIL_PORT'),
+      secure: false,
+      auth: {
+        user: this.configService.get<string>('EMAIL_USER'),
+        pass: this.configService.get<string>('EMAIL_PASS'),
       },
     });
   }
@@ -53,10 +65,13 @@ export class UsersService {
       this.logger.log(`User created with ID: ${user.id}`);
 
       // Send a dummy event message to RabbitMQ
-      this.client.emit('user_created', {
+      this.rabbitMqClient.emit('user_created', {
         id: user.id,
         event: "USER_CREATED",
       });
+
+      // Send a dummy email
+      await this.sendDummyEmail(user.email);
 
       return reqresUser;
     } catch (error) {
@@ -251,5 +266,24 @@ export class UsersService {
         )
         .pipe(map((response) => response.data)),
     );
+  }
+
+  // In real-world applications, you would use a library like SendGrid or Mailgun to send emails
+  // And probably would create a dedicated service for sending emails
+  private async sendDummyEmail(email: string): Promise<void> {
+    const mailOptions = {
+      from: '"Awesome.app" <no-reply@yourapp.com>',
+      to: email,
+      subject: 'Welcome to Awesome.app',
+      text: 'Hello, welcome to Awesome.app!',
+      html: '<b>Hello, welcome to Awesome.app!</b>',
+    };
+
+    try {
+      await this.mailTransporter.sendMail(mailOptions);
+      this.logger.log(`Dummy email sent to ${email}`);
+    } catch (error) {
+      this.logger.error(`Failed to send email to ${email}: ${error.message}`);
+    }
   }
 }
