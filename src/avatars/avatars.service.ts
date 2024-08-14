@@ -46,9 +46,9 @@ export class AvatarsService {
     }
 
     let avatar = await this.avatarModel.create({
-      foreignId: id,
+      foreign_id: id,
       filename: createAvatarDto.filename,
-      contentType: createAvatarDto.contentType,
+      content_type: createAvatarDto.content_type,
       md5: crypto
         .createHash('md5')
         .update(createAvatarDto.content)
@@ -60,7 +60,7 @@ export class AvatarsService {
 
   async findOne(id: string): Promise<AvatarDto> {
     try {
-      let avatar = await this.avatarModel.findOne({ foreignId: id });
+      let avatar = await this.avatarModel.findOne({ foreign_id: id });
 
       if (!avatar) {
         this.logger.warn(`Avatar with ID: ${id} not found`);
@@ -82,7 +82,7 @@ export class AvatarsService {
 
   async delete(id: string): Promise<DeleteAvatarDto> {
     try {
-      let avatar = await this.avatarModel.findOneAndDelete({ foreignId: id });
+      let avatar = await this.avatarModel.findOneAndDelete({ foreign_id: id });
 
       if (!avatar) {
         this.logger.warn(`Avatar with ID: ${id} not found`);

@@ -11,7 +11,7 @@ export class CreateAvatarDto {
     description: 'The content type of the avatar',
     example: 'image/jpeg',
   })
-  contentType: string;
+  content_type: string;
 
   @ApiProperty({
     description: 'The content of the avatar',

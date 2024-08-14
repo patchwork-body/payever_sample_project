@@ -11,7 +11,7 @@ export class AvatarDto {
     description: 'The foreign id of the avatar',
     example: '507f1f77bcf86cd799439011',
   })
-  foreignId: string;
+  foreign_id: string;
 
   @ApiProperty({
     description: 'The filename of the avatar',
@@ -23,7 +23,7 @@ export class AvatarDto {
     description: 'The content type of the avatar',
     example: 'image/jpeg',
   })
-  contentType: string;
+  content_type: string;
 
   @ApiProperty({
     description: 'The MD5 hash of the avatar',

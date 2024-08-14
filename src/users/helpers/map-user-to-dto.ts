@@ -6,7 +6,7 @@ export function mapUserToUserDto(user: UserDocument): UserDto {
     id: user.id,
     email: user.email,
     job: user.job,
-    first_name: user.firstName,
-    last_name: user.lastName,
+    first_name: user.first_name,
+    last_name: user.last_name,
   };
 }

@@ -12,10 +12,10 @@ export class User {
   job: string;
 
   @Prop({ required: true })
-  firstName: string;
+  first_name: string;
 
   @Prop({ required: true })
-  lastName: string;
+  last_name: string;
 
   @Prop()
   avatar: string;

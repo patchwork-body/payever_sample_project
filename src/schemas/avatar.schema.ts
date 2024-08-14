@@ -6,13 +6,13 @@ export type AvatarDocument = HydratedDocument<Avatar>;
 @Schema({ timestamps: true })
 export class Avatar {
   @Prop({ required: true })
-  foreignId: string;
+  foreign_id: string;
 
   @Prop({ required: true })
   filename: string;
 
   @Prop({ required: true })
-  contentType: string;
+  content_type: string;
 
   @Prop({ required: true })
   md5: string;

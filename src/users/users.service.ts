@@ -5,6 +5,7 @@ import {
   InternalServerErrorException,
   Logger,
   BadRequestException,
+  Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
@@ -18,17 +19,30 @@ import { ConfigService } from '@nestjs/config';
 import { AvatarsService } from '~/avatars/avatars.service';
 import { AvatarDto } from '~/avatars/dtos/avatar.dto';
 import { DeleteAvatarDto } from '~/avatars/dtos/delete-avatar.dto';
+import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
+  private client: ClientProxy;
 
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private readonly httpService: HttpService,
     private readonly configService: ConfigService,
     private readonly avatarService: AvatarsService,
-  ) {}
+  ) {
+    this.client = ClientProxyFactory.create({
+      transport: Transport.RMQ,
+      options: {
+        urls: [this.configService.get<string>('RABBITMQ_URI')],
+        queue: 'main_queue',
+        queueOptions: {
+          durable: false,
+        },
+      },
+    });
+  }
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
     let reqresUser = await this.createReqresUser(createUserDto);
@@ -36,7 +50,13 @@ export class UsersService {
     try {
       const doc = await this.userModel.create(reqresUser);
       const user = await doc.save();
-      this.logger.log(`User created with ID: ${user._id}`);
+      this.logger.log(`User created with ID: ${user.id}`);
+
+      // Send a dummy event message to RabbitMQ
+      this.client.emit('user_created', {
+        id: user.id,
+        event: "USER_CREATED",
+      });
 
       return reqresUser;
     } catch (error) {
@@ -90,7 +110,7 @@ export class UsersService {
 
         return this.avatarService.create(id, {
           filename: `avatar-${id}.jpg`,
-          contentType: 'image/jpeg',
+          content_type: 'image/jpeg',
           content: avatarBuffer,
         });
       }

@@ -7,9 +7,9 @@ export const mapAvatarToDto = (
 ): AvatarDto => {
   return {
     id: avatar.id,
-    foreignId: avatar.foreignId,
+    foreign_id: avatar.foreign_id,
     filename: avatar.filename,
-    contentType: avatar.contentType,
+    content_type: avatar.content_type,
     md5: avatar.md5,
     content,
   };
