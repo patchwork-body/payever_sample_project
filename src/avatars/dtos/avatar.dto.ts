@@ -35,5 +35,5 @@ export class AvatarDto {
     description: 'The content of the avatar',
     example: Buffer.from('image data').toString('base64'),
   })
-  content: Buffer;
+  content: string;
 }

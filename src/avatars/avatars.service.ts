@@ -71,6 +71,7 @@ export class AvatarsService {
         this.configService.get<string>('UPLOAD_DIR'),
         avatar.filename,
       );
+
       const content = await readFile(path);
 
       return mapAvatarToDto(avatar, content);

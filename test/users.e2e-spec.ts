@@ -191,10 +191,7 @@ describe('UsersController (e2e)', () => {
             filename: expect.any(String),
             content_type: 'image/jpeg',
             md5: expect.any(String),
-            content: {
-              type: 'Buffer',
-              data: expect.any(Array),
-            },
+            content: expect.any(String),
           }),
         );
       });

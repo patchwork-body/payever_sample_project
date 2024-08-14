@@ -67,7 +67,10 @@ describe('AvatarsService', () => {
       mockAvatarModel.create.mockReturnValue(avatar);
       const result = await service.create(id, avatar);
 
-      expect(result).toEqual(avatar);
+      expect(result).toEqual({
+        ...avatar,
+        content: avatar.content.toString('base64'),
+      });
     });
 
     it('should throw an exception when failed to write an avatar', async () => {
@@ -95,7 +98,7 @@ describe('AvatarsService', () => {
 
       const avatar = {
         filename: 'avatar.jpg',
-        content: Buffer.from('base64content'),
+        content: Buffer.from('base64content').toString('base64'),
         content_type: 'image/jpeg',
       };
 

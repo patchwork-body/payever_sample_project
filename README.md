@@ -39,6 +39,11 @@ $ pnpm install
 $ docker-compose up -d
 ```
 
+## API
+
+After running the app, you can access the API at `http://localhost:3000/openapi`
+RabbitMQ management UI is available at `http://localhost:15672` with credentials admin:admin
+
 ## Test
 
 ```bash

@@ -11,6 +11,6 @@ export const mapAvatarToDto = (
     filename: avatar.filename,
     content_type: avatar.content_type,
     md5: avatar.md5,
-    content,
+    content: content.toString('base64'),
   };
 };
