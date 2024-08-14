@@ -3,15 +3,13 @@ version: '3.8'
 services:
   mongodb:
     image: mongo:latest
-    container_name: mongodb
+    container_name: mongo_e2e
     ports:
       - '27017:27017'
-    volumes:
-      - mongo-data:/data/db
 
   rabbitmq:
     image: rabbitmq:3-management
-    container_name: rabbitmq
+    container_name: rabbitmq_e2e
     ports:
       - '5672:5672'
       - '15672:15672'
@@ -23,7 +21,7 @@ services:
     build:
       context: .
       dockerfile: Dockerfile.dev
-    container_name: app
+    container_name: app_e2e
     working_dir: /app
     volumes:
       - .:/app
@@ -36,7 +34,4 @@ services:
     environment:
       - MONGODB_URI=mongodb://mongodb:27017
       - RABBITMQ_URI=amqp://admin:admin@rabbitmq:5672
-    command: start:dev
-
-volumes:
-  mongo-data:
+    command: test:e2e

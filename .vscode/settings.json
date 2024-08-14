@@ -1,6 +1,8 @@
 {
   "cSpell.words": [
+    "dtos",
     "nestjs",
+    "openapi",
     "payever",
     "RABBITMQ"
   ]

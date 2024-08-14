@@ -25,19 +25,19 @@ async function bootstrap() {
 
   await app.startAllMicroservices();
 
+  app.setGlobalPrefix('api');
+  app.enableVersioning({
+    type: VersioningType.URI,
+  });
+
   const config = new DocumentBuilder()
     .setTitle('Users example')
     .setDescription('The users API description')
     .setVersion('1.0')
-    .addTag('users')
     .build();
 
   const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api', app, document);
-
-  app.enableVersioning({
-    type: VersioningType.URI,
-  });
+  SwaggerModule.setup('openapi', app, document);
 
   await app.listen(configService.get<number>('PORT') || 3000);
 }
