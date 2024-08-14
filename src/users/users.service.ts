@@ -1,3 +1,4 @@
+import { catchError, firstValueFrom, map } from 'rxjs';
 import {
   Injectable,
   NotFoundException,
@@ -12,23 +13,35 @@ import { UpdateUserDto } from './dtos/update-user.dto';
 import { UserDto } from './dtos/user.dto';
 import { mapUserToUserDto } from './helpers/map-user-to-dto';
 import { User } from '~/schemas/user.schema';
+import { HttpService } from '@nestjs/axios';
+import { ConfigService } from '@nestjs/config';
+import { AvatarsService } from '~/avatars/avatars.service';
+import { AvatarDto } from '~/avatars/dtos/avatar.dto';
+import { DeleteAvatarDto } from '~/avatars/dtos/delete-avatar.dto';
 
 @Injectable()
 export class UsersService {
   private readonly logger = new Logger(UsersService.name);
 
-  constructor(@InjectModel(User.name) private userModel: Model<User>) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly httpService: HttpService,
+    private readonly configService: ConfigService,
+    private readonly avatarService: AvatarsService,
+  ) {}
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
+    let reqresUser = await this.createReqresUser(createUserDto);
+
     try {
-      const doc = await this.userModel.create(createUserDto);
+      const doc = await this.userModel.create(reqresUser);
       const user = await doc.save();
       this.logger.log(`User created with ID: ${user._id}`);
 
-      return mapUserToUserDto(user);
+      return reqresUser;
     } catch (error) {
-      this.logger.error('Failed to create user', error);
-      throw new InternalServerErrorException('Failed to create user');
+      this.logger.error(error.message);
+      throw error;
     }
   }
 
@@ -39,15 +52,14 @@ export class UsersService {
 
       return users.map(mapUserToUserDto);
     } catch (error) {
-      this.logger.error('Failed to retrieve users', error);
-      throw new InternalServerErrorException('Failed to retrieve users');
+      this.logger.error(error.message);
+      throw error;
     }
   }
 
   async findOne(id: string): Promise<UserDto> {
     if (!isValidObjectId(id)) {
-      this.logger.warn(`Invalid ID: ${id}`);
-      throw new BadRequestException('Invalid ID');
+      return await this.retrieveReqresUser(id);
     }
 
     try {
@@ -62,14 +74,33 @@ export class UsersService {
 
       return mapUserToUserDto(user);
     } catch (error) {
+      this.logger.error(error.message);
+      throw error;
+    }
+  }
+
+  async fetchAvatar(id: string): Promise<AvatarDto> {
+    try {
+      let avatar = await this.avatarService.findOne(id);
+      return avatar;
+    } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.warn(error.message);
-        throw error;
+        let avatarBuffer = await this.retrieveReqresUserAvatar(id);
+
+        return this.avatarService.create(id, {
+          filename: `avatar-${id}.jpg`,
+          contentType: 'image/jpeg',
+          content: avatarBuffer,
+        });
       }
 
-      this.logger.error('Failed to retrieve user', error);
-      throw new InternalServerErrorException('Failed to retrieve user');
+      throw error;
     }
+  }
+
+  async deleteAvatar(id: string): Promise<DeleteAvatarDto> {
+    return this.avatarService.delete(id);
   }
 
   async update(id: string, updateUserDto: UpdateUserDto): Promise<UserDto> {
@@ -92,13 +123,8 @@ export class UsersService {
 
       return mapUserToUserDto(user);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        this.logger.warn(error.message);
-        throw error;
-      }
-
-      this.logger.error('Failed to update user', error);
-      throw new InternalServerErrorException('Failed to update user');
+      this.logger.error(error.message);
+      throw error;
     }
   }
 
@@ -120,13 +146,90 @@ export class UsersService {
 
       return mapUserToUserDto(user);
     } catch (error) {
-      if (error instanceof NotFoundException) {
-        this.logger.warn(error.message);
-        throw error;
-      }
-
-      this.logger.error('Failed to delete user', error);
-      throw new InternalServerErrorException('Failed to delete user');
+      this.logger.error(error.message);
+      throw error;
     }
+  }
+
+  private async retrieveReqresUser(id: string): Promise<UserDto> {
+    const url = new URL(
+      `/api/users/${id}`,
+      this.configService.get<string>('REQRES_API_URL'),
+    ).toString();
+
+    this.logger.debug(`Retrieving user from Reqres: ${url}`);
+
+    return firstValueFrom(
+      this.httpService
+        .get<{ data: UserDto }>(url)
+        .pipe(
+          catchError((error) => {
+            if (error.response && error.response.status === 404) {
+              this.logger.error(`User with id ${id} not found in Reqres`);
+              throw new NotFoundException(`User with id ${id} not found`);
+            }
+
+            this.logger.error('Failed to retrieve user from Reqres', error);
+            throw new InternalServerErrorException(
+              'Failed to retrieve user from Reqres',
+            );
+          }),
+        )
+        .pipe(map((response) => response.data.data)),
+    );
+  }
+
+  private async retrieveReqresUserAvatar(id: string): Promise<Buffer> {
+    const url = new URL(
+      `/api/users/${id}`,
+      this.configService.get<string>('REQRES_API_URL'),
+    ).toString();
+
+    this.logger.debug(`Retrieving user avatar from Reqres: ${url}`);
+
+    let { avatar } = await this.retrieveReqresUser(id);
+
+    return firstValueFrom(
+      this.httpService
+        .get(avatar, { responseType: 'arraybuffer' })
+        .pipe(
+          catchError((error) => {
+            this.logger.error(
+              'Failed to retrieve user avatar from Reqres',
+              error,
+            );
+
+            throw new InternalServerErrorException(
+              'Failed to retrieve user avatar from Reqres',
+            );
+          }),
+        )
+        .pipe(map((response) => Buffer.from(response.data))),
+    );
+  }
+
+  private async createReqresUser(
+    createUserDto: CreateUserDto,
+  ): Promise<UserDto> {
+    const url = new URL(
+      '/api/users',
+      this.configService.get<string>('REQRES_API_URL'),
+    ).toString();
+
+    this.logger.debug(`Creating user in Reqres: ${url}`);
+
+    return firstValueFrom(
+      this.httpService
+        .post<UserDto>(url, createUserDto)
+        .pipe(
+          catchError((error) => {
+            this.logger.error('Failed to create user in Reqres', error);
+            throw new InternalServerErrorException(
+              'Failed to create user in Reqres',
+            );
+          }),
+        )
+        .pipe(map((response) => response.data)),
+    );
   }
 }

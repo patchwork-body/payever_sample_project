@@ -1,9 +1,11 @@
 {
   "cSpell.words": [
     "dtos",
+    "gridfs",
     "nestjs",
     "openapi",
     "payever",
-    "RABBITMQ"
+    "RABBITMQ",
+    "Reqres"
   ]
 }

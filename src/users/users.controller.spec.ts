@@ -6,6 +6,8 @@ import {
   InternalServerErrorException,
   NotFoundException,
 } from '@nestjs/common';
+import { HttpModule, HttpService } from '@nestjs/axios';
+import { ConfigModule } from '@nestjs/config';
 
 const mockUsersService = {
   create: jest.fn(),
@@ -21,6 +23,7 @@ describe('UsersController', () => {
 
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
+      imports: [HttpModule, ConfigModule.forRoot()],
       controllers: [UsersController],
       providers: [
         {

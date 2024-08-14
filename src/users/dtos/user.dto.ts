@@ -26,9 +26,9 @@ export class UserDto {
   last_name: string;
 
   @ApiProperty({
-    description: 'The avatar URL of the user',
-    example: 'http://example.com/avatar.jpg',
     required: false,
+    description: 'The avatar of the user',
+    example: 'https://example.com/avatar.jpg',
   })
   avatar?: string;
 }

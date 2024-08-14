@@ -14,6 +14,8 @@ import { CreateUserDto } from './dtos/create-user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
 import { ApiResponse, ApiTags } from '@nestjs/swagger';
 import { UserDto } from './dtos/user.dto';
+import { DeleteAvatarDto } from '~/avatars/dtos/delete-avatar.dto';
+import { AvatarDto } from '~/avatars/dtos/avatar.dto';
 
 @ApiTags('users')
 @Controller({
@@ -83,5 +85,43 @@ export class UsersController {
   @HttpCode(HttpStatus.OK)
   async delete(@Param('id') id: string): Promise<UserDto> {
     return this.usersService.delete(id);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Avatar found',
+    type: AvatarDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Avatar not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Failed to retrieve avatar',
+  })
+  @Get(':id/avatar')
+  @HttpCode(HttpStatus.OK)
+  async fetchAvatar(@Param('id') id: string): Promise<AvatarDto> {
+    return this.usersService.fetchAvatar(id);
+  }
+
+  @ApiResponse({
+    status: HttpStatus.OK,
+    description: 'Avatar deleted',
+    type: DeleteAvatarDto,
+  })
+  @ApiResponse({
+    status: HttpStatus.NOT_FOUND,
+    description: 'Avatar not found',
+  })
+  @ApiResponse({
+    status: HttpStatus.INTERNAL_SERVER_ERROR,
+    description: 'Failed to delete avatar',
+  })
+  @Delete(':id/avatar')
+  @HttpCode(HttpStatus.OK)
+  async deleteAvatar(@Param('id') id: string): Promise<DeleteAvatarDto> {
+    return this.usersService.deleteAvatar(id);
   }
 }
