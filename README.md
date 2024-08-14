@@ -36,13 +36,7 @@ $ pnpm install
 
 ```bash
 # development
-$ pnpm run start
-
-# watch mode
-$ pnpm run start:dev
-
-# production mode
-$ pnpm run start:prod
+$ docker-compose up -d
 ```
 
 ## Test
@@ -52,7 +46,7 @@ $ pnpm run start:prod
 $ pnpm run test
 
 # e2e tests
-$ pnpm run test:e2e
+$ docker-compose -f docker-compose.e2e.yml up -d
 
 # test coverage
 $ pnpm run test:cov
