@@ -19,7 +19,11 @@ import { ConfigService } from '@nestjs/config';
 import { AvatarsService } from '~/avatars/avatars.service';
 import { AvatarDto } from '~/avatars/dtos/avatar.dto';
 import { DeleteAvatarDto } from '~/avatars/dtos/delete-avatar.dto';
-import { ClientProxy, ClientProxyFactory, Transport } from '@nestjs/microservices';
+import {
+  ClientProxy,
+  ClientProxyFactory,
+  Transport,
+} from '@nestjs/microservices';
 import * as nodemailer from 'nodemailer';
 
 @Injectable()
@@ -67,7 +71,7 @@ export class UsersService {
       // Send a dummy event message to RabbitMQ
       this.rabbitMqClient.emit('user_created', {
         id: user.id,
-        event: "USER_CREATED",
+        event: 'USER_CREATED',
       });
 
       // Send a dummy email
