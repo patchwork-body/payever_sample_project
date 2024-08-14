@@ -190,7 +190,7 @@ export class UsersService {
     }
   }
 
-  private async retrieveReqresUser(id: string): Promise<UserDto> {
+  async retrieveReqresUser(id: string): Promise<UserDto> {
     const url = new URL(
       `/api/users/${id}`,
       this.configService.get<string>('REQRES_API_URL'),
@@ -218,7 +218,7 @@ export class UsersService {
     );
   }
 
-  private async retrieveReqresUserAvatar(id: string): Promise<Buffer> {
+  async retrieveReqresUserAvatar(id: string): Promise<Buffer> {
     const url = new URL(
       `/api/users/${id}`,
       this.configService.get<string>('REQRES_API_URL'),
@@ -243,13 +243,15 @@ export class UsersService {
             );
           }),
         )
-        .pipe(map((response) => Buffer.from(response.data))),
+        .pipe(
+          map((response) => {
+            return Buffer.from(response.data);
+          }),
+        ),
     );
   }
 
-  private async createReqresUser(
-    createUserDto: CreateUserDto,
-  ): Promise<UserDto> {
+  async createReqresUser(createUserDto: CreateUserDto): Promise<UserDto> {
     const url = new URL(
       '/api/users',
       this.configService.get<string>('REQRES_API_URL'),
@@ -274,7 +276,7 @@ export class UsersService {
 
   // In real-world applications, you would use a library like SendGrid or Mailgun to send emails
   // And probably would create a dedicated service for sending emails
-  private async sendDummyEmail(email: string): Promise<void> {
+  async sendDummyEmail(email: string): Promise<void> {
     const mailOptions = {
       from: '"Awesome.app" <no-reply@yourapp.com>',
       to: email,

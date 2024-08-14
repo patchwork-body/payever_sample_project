@@ -14,7 +14,6 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { of } from 'rxjs';
 import { UserDto } from './dtos/user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
-import { AvatarsModule } from '~/avatars/avatars.module';
 import { AvatarsService } from '~/avatars/avatars.service';
 
 const mockUserModel = {
@@ -62,8 +61,14 @@ describe('UsersService', () => {
     email: 'jane@example.com',
   };
 
+  const mockHttpService = {
+    get: jest.fn().mockReturnValue(of({ data: { data: userDto } })),
+    post: jest.fn().mockReturnValue(of({ data: userDto })),
+  };
+
   let mockAvatarsService = {
     create: jest.fn(),
+    findOne: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -83,14 +88,12 @@ describe('UsersService', () => {
           provide: AvatarsService, // Add AvatarsService to providers
           useValue: mockAvatarsService, // Use mock implementation
         },
+        {
+          provide: HttpService,
+          useValue: mockHttpService,
+        },
       ],
-    })
-      .overrideProvider(HttpService)
-      .useValue({
-        get: jest.fn().mockReturnValue(of({ data: userDto })),
-        post: jest.fn().mockReturnValue(of({ data: userDto })),
-      })
-      .compile();
+    }).compile();
 
     service = module.get<UsersService>(UsersService);
     model = module.get<Model<User>>(getModelToken(User.name));
@@ -113,7 +116,11 @@ describe('UsersService', () => {
 
     it('should throw an error if user creation fails', async () => {
       mockUserModel.create.mockReturnValue({
-        save: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to create user')),
+        save: jest
+          .fn()
+          .mockRejectedValue(
+            new InternalServerErrorException('Failed to create user'),
+          ),
       });
 
       await expect(service.create(createUserDto)).rejects.toThrow(
@@ -139,7 +146,9 @@ describe('UsersService', () => {
       mockUserModel.find.mockReturnValue({
         exec: jest
           .fn()
-          .mockRejectedValue(new InternalServerErrorException('Failed to retrieve users')),
+          .mockRejectedValue(
+            new InternalServerErrorException('Failed to retrieve users'),
+          ),
       });
 
       await expect(service.findAll()).rejects.toThrow(
@@ -173,7 +182,11 @@ describe('UsersService', () => {
 
     it('should throw an error if retrieval fails', async () => {
       mockUserModel.findById.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to retrieve user')),
+        exec: jest
+          .fn()
+          .mockRejectedValue(
+            new InternalServerErrorException('Failed to retrieve user'),
+          ),
       });
 
       let id = new ObjectId().toString();
@@ -223,7 +236,11 @@ describe('UsersService', () => {
 
     it('should throw an InternalServerErrorException if update fails', async () => {
       mockUserModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to update user')),
+        exec: jest
+          .fn()
+          .mockRejectedValue(
+            new InternalServerErrorException('Failed to update user'),
+          ),
       });
 
       let id = new ObjectId().toString();
@@ -265,10 +282,70 @@ describe('UsersService', () => {
 
     it('should throw an error if deletion fails', async () => {
       mockUserModel.findByIdAndDelete.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to delete user')),
+        exec: jest
+          .fn()
+          .mockRejectedValue(
+            new InternalServerErrorException('Failed to delete user'),
+          ),
       });
 
       await expect(service.delete('507f1f77bcf86cd799439011')).rejects.toThrow(
+        InternalServerErrorException,
+      );
+    });
+  });
+
+  it('retrieveReqresUser', async () => {
+    let user = await service.retrieveReqresUser('1');
+    expect(user).toEqual(userDto);
+  });
+
+  describe('fetchAvatar', () => {
+    it('it should fetch avatar', async () => {
+      let avatar = {
+        filename: 'avatar-1.jpg',
+        content_type: 'image/jpeg',
+        content: Buffer.from('avatar'),
+      };
+
+      mockAvatarsService.findOne.mockResolvedValue(avatar);
+      let expected = await service.fetchAvatar('1');
+      expect(expected).toEqual(avatar);
+    });
+
+    it('it should create avatar if not found', async () => {
+      const userDtoWithAvatar = {
+        ...userDto,
+        avatar: 'https://reqres.in/img/faces/1-image.jpg',
+      };
+
+      let avatar = {
+        filename: 'avatar-1.jpg',
+        content_type: 'image/jpeg',
+        content: Buffer.from('avatar'),
+      };
+
+      mockAvatarsService.findOne.mockRejectedValue(new NotFoundException());
+      mockAvatarsService.create.mockResolvedValue(avatar);
+
+      jest.spyOn(mockHttpService, 'get').mockImplementation((...args) => {
+        if (args[0] === userDtoWithAvatar.avatar) {
+          return of({ data: 'image_data' });
+        }
+
+        return of({ data: { data: userDtoWithAvatar } });
+      });
+
+      let expected = await service.fetchAvatar('1');
+      expect(expected).toEqual(avatar);
+    });
+
+    it('it should throw an error if fetch fails', async () => {
+      mockAvatarsService.findOne.mockRejectedValue(
+        new InternalServerErrorException(),
+      );
+
+      await expect(service.fetchAvatar('1')).rejects.toThrow(
         InternalServerErrorException,
       );
     });

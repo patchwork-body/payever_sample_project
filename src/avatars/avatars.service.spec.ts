@@ -6,7 +6,10 @@ import { Avatar, AvatarDocument } from '~/schemas/avatar.schema';
 import { CreateAvatarDto } from './dtos/create-avatar.dto';
 import * as fs from 'fs';
 import { ObjectId } from 'mongodb';
-import { InternalServerErrorException, NotFoundException } from '@nestjs/common';
+import {
+  InternalServerErrorException,
+  NotFoundException,
+} from '@nestjs/common';
 
 const mockAvatarModel = {
   create: jest.fn(),
@@ -125,7 +128,7 @@ describe('AvatarsService', () => {
       mockConfigService.get.mockReturnValue('/nonexistent');
 
       await expect(service.findOne(id)).rejects.toThrow(
-        'ENOENT: no such file or directory, open \'/nonexistent/avatar.jpg\'',
+        "ENOENT: no such file or directory, open '/nonexistent/avatar.jpg'",
       );
     });
   });
@@ -154,11 +157,11 @@ describe('AvatarsService', () => {
     it('should throw an exception when avatar not found', async () => {
       let id = '123';
 
-      mockAvatarModel.findOneAndDelete.mockRejectedValue(new NotFoundException());
-
-      await expect(service.delete(id)).rejects.toThrow(
-        'Not Found',
+      mockAvatarModel.findOneAndDelete.mockRejectedValue(
+        new NotFoundException(),
       );
+
+      await expect(service.delete(id)).rejects.toThrow('Not Found');
     });
 
     it('should throw an exception when failed to delete an avatar', async () => {
@@ -170,7 +173,9 @@ describe('AvatarsService', () => {
         content_type: 'image/jpeg',
       };
 
-      jest.spyOn(fs.promises, 'unlink').mockRejectedValue(new Error('Failed to delete an avatar'));
+      jest
+        .spyOn(fs.promises, 'unlink')
+        .mockRejectedValue(new Error('Failed to delete an avatar'));
       mockAvatarModel.findOneAndDelete.mockReturnValue(avatar);
 
       await expect(service.delete(id)).rejects.toThrow(
