@@ -77,7 +77,7 @@ export class UsersService {
       // Send a dummy email
       await this.sendDummyEmail(user.email);
 
-      return reqresUser;
+      return mapUserToUserDto(user);
     } catch (error) {
       this.logger.error(error.message);
       throw error;

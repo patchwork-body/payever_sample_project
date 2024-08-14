@@ -14,6 +14,14 @@ describe('UsersController (e2e)', () => {
     job: 'Developer',
   };
 
+  let reqres_user = {
+    id: 8,
+    email: 'lindsay.ferguson@reqres.in',
+    first_name: 'Lindsay',
+    last_name: 'Ferguson',
+    avatar: 'https://reqres.in/img/faces/8-image.jpg',
+  };
+
   const updated_user = {
     first_name: 'Jane',
     last_name: 'Doe',
@@ -137,14 +145,14 @@ describe('UsersController (e2e)', () => {
       });
   });
 
-  it('/users/:id (GET) - Invalid ID', () => {
+  it('/users/:id (GET) - Not Found', () => {
     return request(app.getHttpServer())
       .get('/users/invalid_id')
-      .expect(400)
+      .expect(404)
       .expect({
-        statusCode: 400,
-        error: 'Bad Request',
-        message: 'Invalid ID',
+        message: 'User with id invalid_id not found',
+        error: 'Not Found',
+        statusCode: 404,
       });
   });
 
@@ -168,6 +176,62 @@ describe('UsersController (e2e)', () => {
         statusCode: 400,
         error: 'Bad Request',
         message: 'Invalid ID',
+      });
+  });
+
+  it('/users/:id/avatar (GET) - Reqres', () => {
+    return request(app.getHttpServer())
+      .get(`/users/${reqres_user.id}/avatar`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual(
+          expect.objectContaining({
+            id: expect.any(String),
+            foreign_id: reqres_user.id.toString(),
+            filename: expect.any(String),
+            content_type: 'image/jpeg',
+            md5: expect.any(String),
+            content: {
+              type: 'Buffer',
+              data: expect.any(Array),
+            },
+          }),
+        );
+      });
+  });
+
+  it('/users/:id/avatar (GET) - Reqres Not Found', () => {
+    return request(app.getHttpServer())
+      .get('/users/1000/avatar')
+      .expect(404)
+      .expect({
+        statusCode: 404,
+        error: 'Not Found',
+        message: 'User with id 1000 not found',
+      });
+  });
+
+  it('/users/:id/avatar (DELETE)', () => {
+    return request(app.getHttpServer())
+      .delete(`/users/${reqres_user.id}/avatar`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual(
+          expect.objectContaining({
+            id: expect.any(String),
+          }),
+        );
+      });
+  });
+
+  it('/users/:id/avatar (DELETE) - Reqres Not Found', () => {
+    return request(app.getHttpServer())
+      .delete('/users/1000/avatar')
+      .expect(404)
+      .expect({
+        message: 'Avatar with ID: 1000 not found',
+        error: 'Not Found',
+        statusCode: 404,
       });
   });
 });
