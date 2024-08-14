@@ -5,7 +5,6 @@ import {
   InternalServerErrorException,
   Logger,
   BadRequestException,
-  Inject,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { isValidObjectId, Model } from 'mongoose';
@@ -61,7 +60,7 @@ export class UsersService {
   }
 
   async create(createUserDto: CreateUserDto): Promise<UserDto> {
-    let reqresUser = await this.createReqresUser(createUserDto);
+    const reqresUser = await this.createReqresUser(createUserDto);
 
     try {
       const doc = await this.userModel.create(reqresUser);
@@ -120,12 +119,12 @@ export class UsersService {
 
   async fetchAvatar(id: string): Promise<AvatarDto> {
     try {
-      let avatar = await this.avatarService.findOne(id);
+      const avatar = await this.avatarService.findOne(id);
       return avatar;
     } catch (error) {
       if (error instanceof NotFoundException) {
         this.logger.warn(error.message);
-        let avatarBuffer = await this.retrieveReqresUserAvatar(id);
+        const avatarBuffer = await this.retrieveReqresUserAvatar(id);
 
         return this.avatarService.create(id, {
           filename: `avatar-${id}.jpg`,
@@ -226,7 +225,7 @@ export class UsersService {
 
     this.logger.debug(`Retrieving user avatar from Reqres: ${url}`);
 
-    let { avatar } = await this.retrieveReqresUser(id);
+    const { avatar } = await this.retrieveReqresUser(id);
 
     return firstValueFrom(
       this.httpService

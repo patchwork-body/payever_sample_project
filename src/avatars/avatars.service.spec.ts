@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { AvatarsService } from './avatars.service';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { getModelToken } from '@nestjs/mongoose';
-import { Avatar, AvatarDocument } from '~/schemas/avatar.schema';
+import { Avatar } from '~/schemas/avatar.schema';
 import { CreateAvatarDto } from './dtos/create-avatar.dto';
 import * as fs from 'fs';
 import { ObjectId } from 'mongodb';
@@ -56,7 +56,7 @@ describe('AvatarsService', () => {
 
   describe('create', () => {
     it('should create an avatar', async () => {
-      let id = '123';
+      const id = '123';
 
       const avatar: CreateAvatarDto = {
         filename: 'avatar.jpg',
@@ -71,7 +71,7 @@ describe('AvatarsService', () => {
     });
 
     it('should throw an exception when failed to write an avatar', async () => {
-      let id = '123';
+      const id = '123';
 
       const avatar: CreateAvatarDto = {
         filename: 'avatar.jpg',
@@ -91,7 +91,7 @@ describe('AvatarsService', () => {
 
   describe('findOne', () => {
     it('should find an avatar', async () => {
-      let id = '123';
+      const id = '123';
 
       const avatar = {
         filename: 'avatar.jpg',
@@ -106,7 +106,7 @@ describe('AvatarsService', () => {
     });
 
     it('should throw an exception when avatar not found', async () => {
-      let id = '123';
+      const id = '123';
 
       mockAvatarModel.findOne.mockReturnValue(null);
 
@@ -116,7 +116,7 @@ describe('AvatarsService', () => {
     });
 
     it('should throw an exception when failed to read an avatar', async () => {
-      let id = '123';
+      const id = '123';
 
       const avatar = {
         filename: 'avatar.jpg',
@@ -135,7 +135,7 @@ describe('AvatarsService', () => {
 
   describe('delete', () => {
     it('should delete an avatar', async () => {
-      let id = '123';
+      const id = '123';
 
       const avatar = {
         id: new ObjectId().toString(),
@@ -155,7 +155,7 @@ describe('AvatarsService', () => {
     });
 
     it('should throw an exception when avatar not found', async () => {
-      let id = '123';
+      const id = '123';
 
       mockAvatarModel.findOneAndDelete.mockRejectedValue(
         new NotFoundException(),
@@ -165,7 +165,7 @@ describe('AvatarsService', () => {
     });
 
     it('should throw an exception when failed to delete an avatar', async () => {
-      let id = '123';
+      const id = '123';
 
       const avatar = {
         filename: 'avatar.jpg',

@@ -29,7 +29,7 @@ export class AvatarsService {
     id: string,
     createAvatarDto: CreateAvatarDto,
   ): Promise<AvatarDto> {
-    let path = join(
+    const path = join(
       this.configService.get<string>('UPLOAD_DIR'),
       createAvatarDto.filename,
     );
@@ -45,7 +45,7 @@ export class AvatarsService {
       );
     }
 
-    let avatar = await this.avatarModel.create({
+    const avatar = await this.avatarModel.create({
       foreign_id: id,
       filename: createAvatarDto.filename,
       content_type: createAvatarDto.content_type,
@@ -60,18 +60,18 @@ export class AvatarsService {
 
   async findOne(id: string): Promise<AvatarDto> {
     try {
-      let avatar = await this.avatarModel.findOne({ foreign_id: id });
+      const avatar = await this.avatarModel.findOne({ foreign_id: id });
 
       if (!avatar) {
         this.logger.warn(`Avatar with ID: ${id} not found`);
         throw new NotFoundException(`Avatar with ID: ${id} not found`);
       }
 
-      let path = join(
+      const path = join(
         this.configService.get<string>('UPLOAD_DIR'),
         avatar.filename,
       );
-      let content = await readFile(path);
+      const content = await readFile(path);
 
       return mapAvatarToDto(avatar, content);
     } catch (error) {
@@ -82,14 +82,16 @@ export class AvatarsService {
 
   async delete(id: string): Promise<DeleteAvatarDto> {
     try {
-      let avatar = await this.avatarModel.findOneAndDelete({ foreign_id: id });
+      const avatar = await this.avatarModel.findOneAndDelete({
+        foreign_id: id,
+      });
 
       if (!avatar) {
         this.logger.warn(`Avatar with ID: ${id} not found`);
         throw new NotFoundException(`Avatar with ID: ${id} not found`);
       }
 
-      let path = join(
+      const path = join(
         this.configService.get<string>('UPLOAD_DIR'),
         avatar.filename,
       );

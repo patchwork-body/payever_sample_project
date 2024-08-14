@@ -14,7 +14,7 @@ describe('UsersController (e2e)', () => {
     job: 'Developer',
   };
 
-  let reqres_user = {
+  const reqres_user = {
     id: 8,
     email: 'lindsay.ferguson@reqres.in',
     first_name: 'Lindsay',

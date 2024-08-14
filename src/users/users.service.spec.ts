@@ -2,7 +2,6 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { ObjectId } from 'mongodb';
 import { UsersService } from './users.service';
 import { getModelToken } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
 import { User } from '~/schemas/user.schema';
 import { CreateUserDto } from './dtos/create-user.dto';
 import {
@@ -37,7 +36,6 @@ const mockConfigService = {
 
 describe('UsersService', () => {
   let service: UsersService;
-  let model: Model<User>;
 
   const userDto: UserDto = {
     id: '1',
@@ -54,7 +52,7 @@ describe('UsersService', () => {
     email: 'john@example.com',
   };
 
-  let updateUserDto: UpdateUserDto = {
+  const updateUserDto: UpdateUserDto = {
     first_name: 'Jane',
     last_name: 'Doe',
     job: 'Product Manager',
@@ -66,7 +64,7 @@ describe('UsersService', () => {
     post: jest.fn().mockReturnValue(of({ data: userDto })),
   };
 
-  let mockAvatarsService = {
+  const mockAvatarsService = {
     create: jest.fn(),
     findOne: jest.fn(),
   };
@@ -96,7 +94,6 @@ describe('UsersService', () => {
     }).compile();
 
     service = module.get<UsersService>(UsersService);
-    model = module.get<Model<User>>(getModelToken(User.name));
   });
 
   it('should be defined', () => {
@@ -163,7 +160,7 @@ describe('UsersService', () => {
         exec: jest.fn().mockResolvedValue(userDto),
       });
 
-      let id = new ObjectId().toString();
+      const id = new ObjectId().toString();
 
       const result = await service.findOne(id);
       expect(result).toEqual(userDto);
@@ -175,7 +172,7 @@ describe('UsersService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      let id = new ObjectId().toString();
+      const id = new ObjectId().toString();
 
       await expect(service.findOne(id)).rejects.toThrow(NotFoundException);
     });
@@ -189,7 +186,7 @@ describe('UsersService', () => {
           ),
       });
 
-      let id = new ObjectId().toString();
+      const id = new ObjectId().toString();
 
       await expect(service.findOne(id)).rejects.toThrow(
         InternalServerErrorException,
@@ -199,7 +196,7 @@ describe('UsersService', () => {
 
   describe('update', () => {
     it('should update a user by ID', async () => {
-      let id = new ObjectId().toString();
+      const id = new ObjectId().toString();
       const user = { id, ...updateUserDto };
 
       mockUserModel.findByIdAndUpdate.mockReturnValue({
@@ -221,7 +218,7 @@ describe('UsersService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      let id = new ObjectId().toString();
+      const id = new ObjectId().toString();
 
       await expect(service.update(id, updateUserDto)).rejects.toThrow(
         NotFoundException,
@@ -243,7 +240,7 @@ describe('UsersService', () => {
           ),
       });
 
-      let id = new ObjectId().toString();
+      const id = new ObjectId().toString();
 
       await expect(service.update(id, updateUserDto)).rejects.toThrow(
         InternalServerErrorException,
@@ -296,20 +293,20 @@ describe('UsersService', () => {
   });
 
   it('retrieveReqresUser', async () => {
-    let user = await service.retrieveReqresUser('1');
+    const user = await service.retrieveReqresUser('1');
     expect(user).toEqual(userDto);
   });
 
   describe('fetchAvatar', () => {
     it('it should fetch avatar', async () => {
-      let avatar = {
+      const avatar = {
         filename: 'avatar-1.jpg',
         content_type: 'image/jpeg',
         content: Buffer.from('avatar'),
       };
 
       mockAvatarsService.findOne.mockResolvedValue(avatar);
-      let expected = await service.fetchAvatar('1');
+      const expected = await service.fetchAvatar('1');
       expect(expected).toEqual(avatar);
     });
 
@@ -319,7 +316,7 @@ describe('UsersService', () => {
         avatar: 'https://reqres.in/img/faces/1-image.jpg',
       };
 
-      let avatar = {
+      const avatar = {
         filename: 'avatar-1.jpg',
         content_type: 'image/jpeg',
         content: Buffer.from('avatar'),
@@ -336,7 +333,7 @@ describe('UsersService', () => {
         return of({ data: { data: userDtoWithAvatar } });
       });
 
-      let expected = await service.fetchAvatar('1');
+      const expected = await service.fetchAvatar('1');
       expect(expected).toEqual(avatar);
     });
 
