@@ -14,6 +14,8 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { of } from 'rxjs';
 import { UserDto } from './dtos/user.dto';
 import { UpdateUserDto } from './dtos/update-user.dto';
+import { AvatarsModule } from '~/avatars/avatars.module';
+import { AvatarsService } from '~/avatars/avatars.service';
 
 const mockUserModel = {
   create: jest.fn(),
@@ -60,6 +62,10 @@ describe('UsersService', () => {
     email: 'jane@example.com',
   };
 
+  let mockAvatarsService = {
+    create: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       imports: [HttpModule, ConfigModule.forRoot()],
@@ -72,6 +78,10 @@ describe('UsersService', () => {
         {
           provide: ConfigService,
           useValue: mockConfigService,
+        },
+        {
+          provide: AvatarsService, // Add AvatarsService to providers
+          useValue: mockAvatarsService, // Use mock implementation
         },
       ],
     })
@@ -103,7 +113,7 @@ describe('UsersService', () => {
 
     it('should throw an error if user creation fails', async () => {
       mockUserModel.create.mockReturnValue({
-        save: jest.fn().mockRejectedValue(new Error('Failed to create user')),
+        save: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to create user')),
       });
 
       await expect(service.create(createUserDto)).rejects.toThrow(
@@ -129,7 +139,7 @@ describe('UsersService', () => {
       mockUserModel.find.mockReturnValue({
         exec: jest
           .fn()
-          .mockRejectedValue(new Error('Failed to retrieve users')),
+          .mockRejectedValue(new InternalServerErrorException('Failed to retrieve users')),
       });
 
       await expect(service.findAll()).rejects.toThrow(
@@ -163,7 +173,7 @@ describe('UsersService', () => {
 
     it('should throw an error if retrieval fails', async () => {
       mockUserModel.findById.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new Error('Failed to retrieve user')),
+        exec: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to retrieve user')),
       });
 
       let id = new ObjectId().toString();
@@ -213,7 +223,7 @@ describe('UsersService', () => {
 
     it('should throw an InternalServerErrorException if update fails', async () => {
       mockUserModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new Error('Failed to update user')),
+        exec: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to update user')),
       });
 
       let id = new ObjectId().toString();
@@ -255,7 +265,7 @@ describe('UsersService', () => {
 
     it('should throw an error if deletion fails', async () => {
       mockUserModel.findByIdAndDelete.mockReturnValue({
-        exec: jest.fn().mockRejectedValue(new Error('Failed to delete user')),
+        exec: jest.fn().mockRejectedValue(new InternalServerErrorException('Failed to delete user')),
       });
 
       await expect(service.delete('507f1f77bcf86cd799439011')).rejects.toThrow(
